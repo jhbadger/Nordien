@@ -1,0 +1,65 @@
+|   ***Some basic expressions***        ***Soma basisk utdrukningar***         
+   Yes / No                            **Ja / Nej**                           
+   Please                              **Gudvil**                             
+   Thank you                           **Dank**                               
+   I beg your pardon?                  **Enskul meg?**                        
+   ***Introductions***                 ***Iletningar***                       
+   Good morning                        **Gud morn**                           
+   Good afternoon                      **Gud dag**                            
+   Good night                          **Gud nakt**                           
+   Good-bye                            **Adjo**                               
+   Hello!                              **Hej!**                               
+   My name is\...                      **Min nam ere\...**                    
+   What is your name?                  **Va ere din nam?**                    
+   Pleased to meet you!                **En nug muten deg!**                  
+   How are you?                        **Hur goe het?**                       
+   Very well, thanks. And you?         **Veri gud, dank. Ent for deg?**       
+   Where do you come from?             **Var kome du van?**                   
+   I\'m from\...                       **Eg ere van\...**                     
+   Canada                              **Kanada**                             
+   Great Britain                       **Britan**                             
+   United States                       **Uson**                               
+   Australia                           **Australia**                          
+   I\'m with my\...                    **Eg ere har met min\...**             
+   wife                                **vif**                                
+   husband                             **husband**                            
+   boyfriend                           **jongfrend**                          
+   girlfriend                          **meedfrend**                          
+   I\'m here on business / vacation.   **Eg ere har for aferar / en fej**     
+   ***Questions***                     ***Fragar***                           
+   How?                                **Hur?**                               
+   When?                               **Ven?**                               
+   What?                               **Va?**                                
+   Why?                                **Varfor?**                            
+   Who?                                **Ver?**                               
+   Where is / are?                     **Var ere?**                           
+   Where can I find\...?               **Var kane eg finden\...?**            
+   Where can I get\...?                **Var kane eg erlangen\...?**          
+   How far?                            **Hur fer?**                           
+   How long?                           **Hur lang?**                          
+   How much / many?                    **Hur mika?**                          
+   Can I have\...?                     **Kane eg haven\...?**                 
+   Can you help me?                    **Kane du helpen meg?**                
+   Is there / Are there\...?           **Ere dar\...?**                       
+   There isn\'t / There aren\'t\...    **Dar ere neet\...**                   
+   ***Do you speak\...?***             ***Spreke du\...?***                   
+   What does this / that mean?         **Va meene des / da?**                 
+   Can you translate this for us?      **Kane du overseten des for os?**      
+   Do you speak English?               **Spreke du Engelska?**                
+   I don\'t speak (much) Nordien.      **Eg spreke neet Nordien (so gud).**   
+   Could you speak more slowly?        **Skul du spreken langsamre?**         
+   Could you repeat that?              **Skul du viderholen da?**             
+   Could you write it down please?     **Skul du gudvil skriben het?**        
+   I understand.                       **Eg forstane.**                       
+   I don\'t understand.                **Eg forstane neet.**                  
+   It\'s\...                           **Het ere\...**                        
+   better / worse                      **gudre / slegre**                     
+   big / small                         **grot / kleen**                       
+   early / late                        **fru / lat**                          
+   good / bad                          **gud / sleg**                         
+   hot / cold                          **heet / kalt**                        
+   near / far                          **ner / fer**                          
+   right / wrong                       **reet / fel**                         
+   vacant / occupied                   **fri / besette**                      
+   ----------------------------------- -------------------------------------- 
+   

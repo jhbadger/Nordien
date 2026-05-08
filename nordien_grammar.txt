@@ -1,0 +1,154 @@
+Nordien's alphabet consists of only 21 letters:
+
+A, B, D, E, F, G, H, I, J, K, L, M, N, O, P, R, S, T, U, V, Z
+
+Pronunciation of Nordien is very regular and consistent.
+
+Consonants
+
+The letters B, D, F, K, L, M, N, P, T, V, and Z are pronounced as in English. Note that:
+
+    G is always pronounced as in go
+    H is always pronounced as in have
+    J is pronounced as Y in yes
+    R is lightly trilled (or in the throat as in Danish, i.e. softer than in German and Dutch)
+    S is always pronounced as in see
+
+The sound of NG in ring is also written as NG in Nordien. This is the only consonant sound that is represented by more than one letter. NG should never be pronounced as two separate sounds.
+
+Note that the consonant sounds in the words she, chew, and joy do not exist in Nordien.
+
+Vowels
+
+Nordien has only six vowel sounds:
+
+    A -- as in ah!
+    E -- as in get
+    I -- as in machine
+    O -- as in role
+    U -- as in rule
+    EE -- as in A in late
+
+The vowels in Nordien are pronounced with more tension and precision than in English. The rounded vowels O and U are best pronounced with the lips held in a tight circle.
+
+ 
+
+The subject pronouns in Nordien are:
+	
+eg (I) vi (we)
+du (you) jee (you)
+han (he) zi (she)
+het (it) man (one)
+dee (they)
+
+meg (me) os (us)
+deg (you) ir (you)
+han (him) zi (her)
+het (it) man (one)
+dem (them)
+
+Here are the possessive forms:
+	
+min (my, mine) vor (our, ours)
+din (your, yours) jeer (your, yours)
+hans (his) zir (her, hers)
+hets (its) mans (one's)
+der (their, theirs)
+
+As in English, nouns in Nordien are not divided into genders or categories.
+
+Only the genetive (possessive) case is marked. The suffix -(e)s is used for this.
+
+    Example: hund (dog); hunds (dog's)
+
+A plural noun is indicated by the suffix -ar.
+
+    Example: kat (cat); katar (cats)
+
+The indefinite article is en, and the definite article is de.
+
+    Example: en hus (a house); de hus (the house)
+
+Adjectives and adverbs take the same form in Nordien. They can only be differentiated by context.
+
+Adjectives are placed before the noun they describe. Adverbs can be placed more freely in a sentence, but their most logical placement for the intended meaning is preferred.
+
+The comparative and superlative are always formed with the suffixes -re and -ste respectively.
+
+Verb formation in Nordien is simple and entirely regular. There are also no different conjugations for the different persons.
+
+There are three verb suffixes that are added to the root to arrive at the correct form:
+
+    -en is used for the infinitive
+    -e is used for the present tense
+    -ende is used for the progressive
+    -te is used for the past tense and past participle
+
+The imperative form is the bare root itself.
+
+To form the future tense, the auxiliary skal is used. Similarly, for the conditional mode, skul is used.
+
+    Examples:
+
+    Zi vile singen (She wants to sing)
+    Dee skal komen (They will come)
+    Han skul haven spelte (He would have played)
+
+Note that verbs occur in the same place in the sentence as in English. They are not moved to the end of certain clauses as in German.
+
+ 
+
+Nordien uses affixes to modify the meaning of the root word. Here are some of these:
+-bel - multiple (tvobel - double)
+-er - agent, tool, person (baker - baker)
+-et - ordinal number (tvoet - second)
+-het - -ness (gladhet - happiness)
+-ien - person from a place (Kanadien - Canadian)
+-ig - adjective (pertaining to the root) (basig - basic)
+-in - specifically female (levenin - lioness)
+-ir - make, render (svartiren - to blacken)
+-let - smaller (buklet - booklet)
+-ling - offspring (hundling - puppy)
+-mal - repetition (tvomal - twice)
+-ning - noun from verb (beslisning - decision)
+-ort - place (grindort - mill)
+-sam - adjective (full of, like a) (smartsam - painful)
+-ska - language or adjective of place (Svenska - Swedish)
+-tel - fraction (tvotel - half)
+
+ 
+The Nordien numbers are:
+0 - nul
+1 - en
+2 - tvo
+3 - tri
+4 - fir
+5 - fiv
+6 - seks
+7 - siven
+8 - akt
+9 - neen
+10 - ten
+100 - hundred
+1000 - tusen
+1,000,000 - miljon
+
+These are combined logically in a single word to form other numbers.
+Examples:
+tenen - eleven (ten and one)
+tvotenfir - twenty-four (two tens and four)
+tvotusenakthundredtenfir - two-thousand eight-hundred fourteen
+
+Ordinal numbers are formed by adding the suffix -et.
+Examples:
+tvoet - second
+fivet - fifth
+firtensivenet - forty-seventh
+
+In Nordien, questions are formed by inverting the subject and verb.
+Examples:
+Kene du han? - Do you know him?
+Ere de stad grot? - Is the city large?
+Va skal vi lesen? - What will we read?
+
+ 
