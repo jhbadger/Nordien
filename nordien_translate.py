@@ -93,7 +93,7 @@ FUNCTION_EN_NO: dict[str, str] = {
     # adverbs
     "up": "up", "down": "neder", "out": "ut", "back": "baka",
     "away": "fort", "here": "har", "there": "dar", "now": "nu",
-    "then": "dan", "very": "veri", "quite": "veri", "too": "veri",
+    "then": "dan", "very": "veri", "quite": "veri",
     "also": "og", "just": "just", "only": "nur", "still": "dok",
     "always": "altid", "never": "nitid", "sometimes": "imal",
     "often": "oft", "soon": "balda", "already": "red",
@@ -275,13 +275,80 @@ IRREGULAR_EN: dict[str, tuple[str, str]] = {
     "working": ("arbeten", "prog"),
     "rowing": ("roen", "prog"),
     "smoking": ("ruken", "prog"),
+    # eat / wear / speak / write
+    "ate": ("eten", "past"), "eaten": ("eten", "past"),
+    "eating": ("eten", "prog"),
+    "wore": ("tragen", "past"), "worn": ("tragen", "past"),
+    "wearing": ("tragen", "prog"),
+    "spoke": ("spreken", "past"), "spoken": ("spreken", "past"),
+    "speaking": ("spreken", "prog"),
+    "wrote": ("skriben", "past"), "written": ("skriben", "past"),
+    "writing": ("skriben", "prog"),
+    # drink / sing / swim  (noun-before-verb in dict shadows -ing rule)
+    "drank": ("trinken", "past"), "drunk": ("trinken", "past"),
+    "drinking": ("trinken", "prog"),
+    "sang": ("singen", "past"), "sung": ("singen", "past"),
+    "singing": ("singen", "prog"),
+    "swam": ("svimen", "past"), "swum": ("svimen", "past"),
+    "swimming": ("svimen", "prog"),
+    # fly / choose / drive / throw / grow  (fly: noun-before-verb)
+    "flew": ("flugen", "past"), "flown": ("flugen", "past"),
+    "flying": ("flugen", "prog"),
+    "chose": ("veelen", "past"), "chosen": ("veelen", "past"),
+    "choosing": ("veelen", "prog"),
+    "drove": ("koren", "past"), "driven": ("koren", "past"),
+    "driving": ("koren", "prog"),
+    "threw": ("kasten", "past"), "thrown": ("kasten", "past"),
+    "throwing": ("kasten", "prog"),
+    "grew": ("groen", "past"), "grown": ("groen", "past"),
+    "growing": ("groen", "prog"),
+    # draw / break / freeze / wake  (break: noun-before-verb)
+    "drew": ("dragen", "past"),
+    "broke": ("breken", "past"), "broken": ("breken", "past"),
+    "breaking": ("breken", "prog"),
+    "froze": ("frosten", "past"), "frozen": ("frosten", "past"),
+    "freezing": ("frosten", "prog"),
+    "woke": ("veken", "past"), "woken": ("veken", "past"),
+    "waking": ("veken", "prog"),
+    # ride / tear / shake / strike / hide / swear
+    "rode": ("riden", "past"), "ridden": ("riden", "past"),
+    "riding": ("riden", "prog"),
+    "tore": ("skiren", "past"), "torn": ("skiren", "past"),
+    "tearing": ("skiren", "prog"),
+    "shook": ("skutelen", "past"), "shaken": ("skutelen", "past"),
+    "shaking": ("skutelen", "prog"),
+    "struck": ("slagen", "past"), "stricken": ("slagen", "past"),
+    "striking": ("slagen", "prog"),
+    "hid": ("forsteken", "past"), "hidden": ("forsteken", "past"),
+    "hiding": ("forsteken", "prog"),
+    "swore": ("sveren", "past"), "sworn": ("sveren", "past"),
+    "swearing": ("sveren", "prog"),
+    # catch / teach / buy / fight / seek
+    "caught": ("fangen", "past"), "catching": ("fangen", "prog"),
+    "taught": ("leeren", "past"), "teaching": ("leeren", "prog"),
+    "bought": ("kopen", "past"), "buying": ("kopen", "prog"),
+    "fought": ("slakten", "past"), "fighting": ("slakten", "prog"),
+    "sought": ("zuken", "past"), "seeking": ("zuken", "prog"),
+    # mean / keep / sleep / weep / sweep / build / burn
+    "meant": ("meenen", "past"), "meaning": ("meenen", "prog"),
+    "kept": ("behaden", "past"), "keeping": ("behaden", "prog"),
+    "slept": ("slafen", "past"), "sleeping": ("slafen", "prog"),
+    "wept": ("veenen", "past"), "weeping": ("veenen", "prog"),
+    "swept": ("fegen", "past"), "sweeping": ("fegen", "prog"),
+    "built": ("bogen", "past"), "building": ("bogen", "prog"),
+    "burnt": ("brenen", "past"), "burning": ("brenen", "prog"),
+    # spell / lean / dream
+    "spelt": ("bukstaben", "past"), "spelling": ("bukstaben", "prog"),
+    "leant": ("klinen", "past"), "leaning": ("klinen", "prog"),
+    "dreamt": ("dromen", "past"), "dreamed": ("dromen", "past"),
+    "dreaming": ("dromen", "prog"),
 }
 
 # ─── Nordien special forms → English ────────────────────────────────────────
 
 NO_SPECIAL_EN: dict[str, str] = {
     # common nouns that get shadowed by rarer synonyms in the dict
-    "fru": "woman", "jung": "young", "man": "man", "fater": "father",
+    "fru": "woman", "fruar": "women", "jung": "young", "man": "man", "fater": "father",
     "mord": "murder", "blud": "blood", "keel": "throat", "og": "eye",
     "sko": "lake", "brink": "shore", "bot": "boat", "veg": "road",
     "pad": "path", "skog": "forest", "bak": "back", "huved": "head",
@@ -400,6 +467,42 @@ class NordienDict:
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
+def _parse_nordien_number(s: str) -> int | None:
+    """Parse a compound Nordien number to its integer value.
+
+    Nordien numbers are written as a single concatenated word, e.g.
+    'tvotenfir' = 24, 'tvotusenakthundredtenfir' = 2814.
+    Digits (en..neen) accumulate; multipliers (ten/hundred/tusen/miljon)
+    multiply the running digit total and add it to the result.
+    """
+    _digits = {
+        "nul": 0, "en": 1, "tvo": 2, "tri": 3, "fir": 4,
+        "fiv": 5, "seks": 6, "siven": 7, "akt": 8, "neen": 9,
+    }
+    _mults = {"ten": 10, "hundred": 100, "tusen": 1_000, "miljon": 1_000_000}
+    _all = {**_digits, **_mults}
+
+    pos = 0
+    result = 0
+    current = 0  # digit(s) accumulating before the next multiplier
+    while pos < len(s):
+        matched = next(
+            (w for w in sorted(_all, key=len, reverse=True) if s.startswith(w, pos)),
+            None,
+        )
+        if matched is None:
+            return None
+        val = _all[matched]
+        pos += len(matched)
+        if matched in _mults:
+            result += (current or 1) * val  # bare "hundred" = 1×100
+            current = 0
+        else:
+            current += val
+    result += current  # trailing units
+    return result if result > 0 or s == "nul" else None
+
+
 def _no_root(infinitive: str) -> str:
     """Strip -en from Nordien infinitive to get verb root."""
     return infinitive[:-2] if infinitive.endswith("en") else infinitive
@@ -420,6 +523,49 @@ def _cap(result: str, original: str) -> str:
     if result and original and original[0].isupper():
         return result[0].upper() + result[1:]
     return result
+
+
+# ─── English irregular plurals ───────────────────────────────────────────────
+
+_IRREG_PLURAL: dict[str, str] = {
+    "man": "men", "woman": "women", "child": "children",
+    "tooth": "teeth", "foot": "feet", "mouse": "mice",
+    "goose": "geese", "louse": "lice", "ox": "oxen",
+    "person": "people", "die": "dice",
+    "knife": "knives", "life": "lives", "wife": "wives",
+    "leaf": "leaves", "wolf": "wolves", "half": "halves",
+    "calf": "calves", "loaf": "loaves", "shelf": "shelves",
+    "elf": "elves", "thief": "thieves",
+    "datum": "data", "criterion": "criteria", "phenomenon": "phenomena",
+}
+_IRREG_PLURAL_REV: dict[str, str] = {v: k for k, v in _IRREG_PLURAL.items()}
+
+
+def _en_plural(singular: str) -> str:
+    """Return the English plural, using irregular form where applicable."""
+    return _IRREG_PLURAL.get(singular.lower(), singular + "s")
+
+
+# ─── Number / affix lookup tables ────────────────────────────────────────────
+
+_NUMBER_WORDS: dict[str, int] = {
+    "en": 1, "tvo": 2, "tri": 3, "fir": 4, "fiv": 5,
+    "seks": 6, "siven": 7, "akt": 8, "neen": 9, "ten": 10,
+}
+_ORDINALS: dict[str, str] = {
+    "en": "first", "tvo": "second", "tri": "third", "fir": "fourth",
+    "fiv": "fifth", "seks": "sixth", "siven": "seventh", "akt": "eighth",
+    "neen": "ninth", "ten": "tenth",
+}
+_FRACTIONS: dict[str, str] = {
+    "tvo": "half", "tri": "third", "fir": "quarter",
+    "fiv": "fifth", "seks": "sixth", "siven": "seventh",
+    "akt": "eighth", "neen": "ninth", "ten": "tenth",
+}
+_MULTIPLES: dict[str, str] = {
+    "tvo": "double", "tri": "triple", "fir": "quadruple",
+    "fiv": "quintuple", "seks": "sextuple",
+}
 
 
 # ─── English → Nordien ───────────────────────────────────────────────────────
@@ -481,6 +627,13 @@ def en_word(word: str, dic: NordienDict) -> str:
             if "n" in pos:
                 return _cap(no + "ar", word)
 
+    # 7.5. English irregular plurals not caught above (men, mice, geese, knives…)
+    if lower in _IRREG_PLURAL_REV:
+        singular = _IRREG_PLURAL_REV[lower]
+        h = dic.lookup_en(singular)
+        if h:
+            return _cap(h[0] + "ar", word)
+
     # 8. Genitive 's
     if lower.endswith("'s"):
         h = dic.lookup_en(lower[:-2])
@@ -494,7 +647,37 @@ def en_word(word: str, dic: NordienDict) -> str:
             if h:
                 return _cap(h[0], word)
 
-    # 10. English comparative -er / superlative -est → Nordien -re / -ste
+    # 10. English -ness → Nordien -het  (darkness → durkhet, happiness → gladhet)
+    if lower.endswith("ness") and len(lower) > 5:
+        base = lower[:-4]
+        candidates = [base]
+        if base.endswith("i"):
+            candidates.append(base[:-1] + "y")  # happi → happy
+        for candidate in candidates:
+            h = dic.lookup_en(candidate)
+            if h:
+                return _cap(h[0] + "het", word)
+
+    # 11. English -ful → Nordien -sam  (painful → smartsam)
+    if lower.endswith("ful") and len(lower) > 4:
+        h = dic.lookup_en(lower[:-3])
+        if h:
+            return _cap(h[0] + "sam", word)
+
+    # 12. English -some → Nordien -sam  (fearsome → angssam)
+    if lower.endswith("some") and len(lower) > 5:
+        h = dic.lookup_en(lower[:-4])
+        if h:
+            return _cap(h[0] + "sam", word)
+
+    # 13. English -ic → Nordien -ig  (atomic → atomig)
+    if lower.endswith("ic") and len(lower) > 3:
+        for base in (lower[:-2], lower[:-2] + "e"):
+            h = dic.lookup_en(base)
+            if h:
+                return _cap(h[0] + "ig", word)
+
+    # 14. English comparative -er / superlative -est → Nordien -re / -ste
     if lower.endswith("er") and len(lower) > 4:
         h = dic.lookup_en(lower[:-2])
         if h and "adj" in h[1]:
@@ -503,6 +686,18 @@ def en_word(word: str, dic: NordienDict) -> str:
         h = dic.lookup_en(lower[:-3])
         if h and "adj" in h[1]:
             return _cap(h[0] + "ste", word)
+
+    # 15. English -er (agent noun) → Nordien root + -er  (baker → bak+er)
+    if lower.endswith("er") and len(lower) > 3:
+        base = lower[:-2]
+        for candidate in (base, base + "e"):
+            h = dic.lookup_en(candidate)
+            if h and "v" in h[1]:
+                return _cap(_no_root(h[0]) + "er", word)
+        if len(base) >= 2 and base[-1] == base[-2]:
+            h = dic.lookup_en(base[:-1])
+            if h and "v" in h[1]:
+                return _cap(_no_root(h[0]) + "er", word)
 
     # 11. Proper noun (capitalised, not in dict): keep as-is
     if word[0].isupper():
@@ -525,13 +720,157 @@ def no_word(word: str, dic: NordienDict) -> str:
     if hit:
         return _cap(hit[0], word)
 
-    # 3. Plural -ar
+    # 3. Causative -ir verb forms (checked before generic suffix stripping)
+    if lower.endswith("irende") and len(lower) > 7:
+        hit = dic.lookup_no(lower[:-6])
+        if hit:
+            return _cap("making " + hit[0], word)
+
+    if lower.endswith("irte") and len(lower) > 5:
+        hit = dic.lookup_no(lower[:-4])
+        if hit:
+            return _cap("made " + hit[0], word)
+
+    if lower.endswith("iren") and len(lower) > 5:
+        hit = dic.lookup_no(lower[:-4])
+        if hit:
+            return _cap("to make " + hit[0], word)
+
+    if lower.endswith("ire") and len(lower) > 4:
+        hit = dic.lookup_no(lower[:-3])
+        if hit:
+            return _cap("makes " + hit[0], word)
+
+    # 4. Derivational affixes (longest first to reduce false matches)
+
+    # -ling  offspring/young  (hundling → puppy, kikinling → chick)
+    if lower.endswith("ling") and len(lower) > 5:
+        hit = dic.lookup_no(lower[:-4])
+        if hit:
+            return _cap(hit[0] + " offspring", word)
+
+    # -ning  noun from verb  (agerning → action, beslisning → decision)
+    if lower.endswith("ning") and len(lower) > 5:
+        root = lower[:-4]
+        for inf in (root + "en", root + "iren", root):
+            hit = dic.lookup_no(inf)
+            if hit:
+                en = hit[0]
+                if en.endswith("e"):
+                    return _cap(en[:-1] + "ing", word)
+                return _cap(en + "ing", word)
+
+    # -het  -ness  (gladhet → happiness, kanhet → ability)
+    if lower.endswith("het") and len(lower) > 4:
+        hit = dic.lookup_no(lower[:-3])
+        if hit:
+            en = hit[0]
+            if en.endswith("y"):
+                return _cap(en[:-1] + "iness", word)
+            if en.endswith("le"):
+                return _cap(en[:-2] + "ility", word)
+            return _cap(en + "ness", word)
+
+    # -sam  -ful / -some / -able  (kansam → able, smartsam → painful)
+    if lower.endswith("sam") and len(lower) > 4:
+        hit = dic.lookup_no(lower[:-3])
+        if hit:
+            en = hit[0]
+            if en.endswith("e"):
+                return _cap(en + "some", word)
+            return _cap(en + "ful", word)
+
+    # -ort  place  (grabort → graveyard, gerektort → courthouse)
+    if lower.endswith("ort") and len(lower) > 4:
+        hit = dic.lookup_no(lower[:-3])
+        if hit:
+            return _cap(hit[0] + " place", word)
+
+    # -let  diminutive  (brodlet → roll, oranglet → clementine)
+    if lower.endswith("let") and len(lower) > 4:
+        hit = dic.lookup_no(lower[:-3])
+        if hit:
+            return _cap(hit[0] + "let", word)
+
+    # -ien  person from a place  (Afrikien → African)
+    if lower.endswith("ien") and len(lower) > 4:
+        hit = dic.lookup_no(lower[:-3])
+        if hit:
+            en = hit[0]
+            return _cap((en[:-1] if en[-1] in "aeiou" else en) + "an", word)
+
+    # -ska  language / place adjective  (Afrikska → African)
+    if lower.endswith("ska") and len(lower) > 4:
+        hit = dic.lookup_no(lower[:-3])
+        if hit:
+            en = hit[0]
+            return _cap((en[:-1] if en[-1] in "aeiou" else en) + "an", word)
+
+    # -bel  multiple  (tvobel → double, tribel → triple)
+    if lower.endswith("bel") and len(lower) > 4:
+        num = lower[:-3]
+        if num in _MULTIPLES:
+            return _cap(_MULTIPLES[num], word)
+
+    # -tel  fraction  (tvotel → half, tritel → third)
+    if lower.endswith("tel") and len(lower) > 4:
+        num = lower[:-3]
+        if num in _FRACTIONS:
+            return _cap(_FRACTIONS[num], word)
+
+    # -mal  repetition  (trimal → three times)
+    if lower.endswith("mal") and len(lower) > 4:
+        num = lower[:-3]
+        if num in _NUMBER_WORDS:
+            n = _NUMBER_WORDS[num]
+            if n == 1:
+                return _cap("once", word)
+            if n == 2:
+                return _cap("twice", word)
+            return _cap(f"{n} times", word)
+
+    # -ig  adjective from noun/root  (basig → basic, abdomenig → abdominal)
+    if lower.endswith("ig") and len(lower) > 3:
+        hit = dic.lookup_no(lower[:-2])
+        if hit:
+            en = hit[0]
+            if en.endswith("e"):
+                return _cap(en[:-1] + "ic", word)
+            return _cap(en + "ic", word)
+
+    # -in  female form  (levenin → lioness)
+    if lower.endswith("in") and len(lower) > 3:
+        hit = dic.lookup_no(lower[:-2])
+        if hit:
+            en = hit[0]
+            if en.endswith("e"):
+                return _cap(en[:-1] + "ess", word)
+            return _cap(en + "ess", word)
+
+    # -er  agent / tool  (skoder → actor, reter → advisor)
+    if lower.endswith("er") and len(lower) > 3:
+        root = lower[:-2]
+        for inf in (root + "en", root + "iren"):
+            hit = dic.lookup_no(inf)
+            if hit:
+                en = hit[0]
+                if en.endswith("e"):
+                    return _cap(en[:-1] + "er", word)
+                return _cap(en + "er", word)
+
+    # -et  ordinal  (tvoet → second, firet → fourth)
+    if lower.endswith("et") and len(lower) > 3:
+        num = lower[:-2]
+        if num in _ORDINALS:
+            return _cap(_ORDINALS[num], word)
+
+    # 5. Plural -ar
     if lower.endswith("ar"):
         hit = dic.lookup_no(lower[:-2])
         if hit:
-            return _cap(hit[0] + "s", word)
+            return _cap(_en_plural(hit[0]), word)
 
-    # 4. Progressive -ende → -ing
+    # 6. Progressive -ende → -ing
     if lower.endswith("ende"):
         root = lower[:-4]
         for inf in (root + "en", root + "e", root):
@@ -540,74 +879,124 @@ def no_word(word: str, dic: NordienDict) -> str:
                 en = hit[0].rstrip("e")
                 return _cap(en + "ing", word)
 
-    # 5. Past -te → -ed / was/were/had
+    # 7. Past -te → -ed
     if lower.endswith("te"):
         root = lower[:-2]
         for inf in (root + "en", root + "e", root):
             hit = dic.lookup_no(inf)
             if hit:
                 en = hit[0]
-                # avoid double-e endings
                 if en.endswith("e"):
                     return _cap(en + "d", word)
                 return _cap(en + "ed", word)
 
-    # 6. Present -e  (Nordien same form all persons → return base)
+    # 8. Present -e  (Nordien same form all persons → return base)
     if lower.endswith("e") and not lower.endswith("ee"):
         root = lower[:-1]
         hit = dic.lookup_no(root + "en")
         if hit:
             return _cap(hit[0], word)
 
-    # 7. Genitive/plural -s
+    # 9. Genitive/plural -s
     if lower.endswith("s"):
         hit = dic.lookup_no(lower[:-1])
         if hit:
             return _cap(hit[0] + "'s", word)
 
-    # 8. Comparative -re
+    # 10. Comparative -re
     if lower.endswith("re"):
         hit = dic.lookup_no(lower[:-2])
         if hit:
             return _cap(hit[0] + "er", word)
 
-    # 9. Superlative -ste
+    # 11. Superlative -ste
     if lower.endswith("ste"):
         hit = dic.lookup_no(lower[:-3])
         if hit:
             return _cap(hit[0] + "est", word)
 
-    # 10. Proper noun
+    # 12. Compound Nordien number (e.g. tvotenfir → 24, tenen → 11)
+    n = _parse_nordien_number(lower)
+    if n is not None:
+        return str(n)
+
+    # 13. Proper noun
     if word[0].isupper():
         return word
 
     return f"[{word}]"
 
 
+# Auxiliaries that own their own "not" — neet stays put after these.
+_EN_AUX = frozenset({
+    "is", "are", "was", "were", "be", "been",
+    "will", "would", "shall", "can", "could",
+    "may", "might", "must", "should",
+    "have", "has", "had", "do", "does", "did",
+})
+
 # ─── Sentence translation ─────────────────────────────────────────────────────
 
 def translate(text: str, direction: str, dic: NordienDict) -> str:
     """Translate a full string token-by-token.
 
-    Note: Nordien uses the same SVO word order as English, so word-by-word
-    translation works reasonably well.  Two limitations apply:
-      1. Nordien questions use subject-verb inversion (not English "do"-support),
-         so the English auxiliary "do/does/did" is dropped silently.
-      2. Nordien negation (neet) follows the verb; this script places it where the
-         English "not/n't" appears, which may precede the verb.
+    EN→NO negation: Nordien places neet *after* the verb it negates.  When
+    "not/n't/don't/doesn't/didn't" follows a dropped do-auxiliary, neet is
+    deferred and inserted after the next content word instead.
+
+    NO→EN negation: "verb neet" is restructured to "do not verb" when the
+    verb is not an auxiliary (past-tense restructuring is a known limitation).
     """
-    tokens = re.findall(r"[A-Za-z''’-]+|[^A-Za-z''’-]", text)
-    out = []
+    _NEET = "\x00NEET\x00"
+    text = text.replace('‘', "'").replace('’', "'")  # normalise smart quotes
+    tokens = re.findall(r"[A-Za-z'-]+|[^A-Za-z'''-]", text)
+    out: list[str] = []
+    prev_dropped = False   # last word token translated to "" (dropped auxiliary)
+
     for tok in tokens:
-        if re.fullmatch(r"[A-Za-z''’-]+", tok):
-            result = en_word(tok, dic) if direction == "en" else no_word(tok, dic)
-            out.append(result)
+        if re.fullmatch(r"[A-Za-z'-]+", tok):
+            translated = en_word(tok, dic) if direction == "en" else no_word(tok, dic)
+            # Defer neet when it comes from "not" after a dropped auxiliary,
+            # or directly from a do-contraction (don't / doesn't / didn't).
+            if direction == "en" and translated == "neet" and (
+                prev_dropped or tok.lower() in ("don't", "doesn't", "didn't")
+            ):
+                out.append(_NEET)
+            else:
+                out.append(translated)
+            prev_dropped = direction == "en" and translated == ""
         else:
             out.append(tok)
+            if tok.strip():          # non-whitespace punctuation resets the flag
+                prev_dropped = False
+
+    if direction == "en":
+        # Resolve each deferred neet: place it after the immediately following word.
+        i = 0
+        while i < len(out):
+            if out[i] == _NEET:
+                j = i + 1
+                while j < len(out) and not re.fullmatch(r"[A-Za-z'-]+", out[j]):
+                    j += 1
+                if j < len(out):
+                    word, gap = out[j], out[i + 1 : j]
+                    out[i : j + 1] = [word] + gap + ["neet"]
+                else:
+                    out[i] = "neet"   # end of sentence — leave as-is
+            i += 1
+
     result = "".join(out)
-    # Clean up multiple spaces left by dropped auxiliary "do/does/did"
     result = re.sub(r" {2,}", " ", result).strip()
-    # Ensure sentence starts with a capital letter
+
+    if direction == "no":
+        # "verb not" → "do not verb" when verb is not an auxiliary.
+        result = re.sub(
+            r"\b(\w+) not\b",
+            lambda m: m.group(0) if m.group(1).lower() in _EN_AUX
+                      else f"do not {m.group(1)}",
+            result,
+        )
+
     if result and result[0].islower():
         result = result[0].upper() + result[1:]
     return result

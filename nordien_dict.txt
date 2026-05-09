@@ -2312,6 +2312,8 @@ labour (v):  arbeten
 lace (n):  (for tying) las; (material) spets
 lack (n):  mes
 lack (v):  mesen
+lady (n):  fru
+ladies (n): fruar
 lake (n):  sko
 lame (adj):  lam
 lament (n):  lament
@@ -3595,6 +3597,7 @@ schedule (n):  tidplan
 schedule (v):  tidplanen
 school (n):  skola
 science (n):  vetskap
+scientist (n):  vetskaper
 scissors (n):  skar
 scooter (n):  skoter
 scope (n):  skop
