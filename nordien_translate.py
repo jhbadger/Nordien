@@ -124,6 +124,14 @@ FUNCTION_EN_NO: dict[str, str] = {
     "five": "fiv", "six": "seks", "seven": "siven", "eight": "akt",
     "nine": "neen", "ten": "ten", "hundred": "hundred",
     "thousand": "tusen", "million": "miljon",
+    # teens
+    "eleven": "teneen", "twelve": "tentvo", "thirteen": "tentri",
+    "fourteen": "tenfir", "fifteen": "tenfiv", "sixteen": "tenseks",
+    "seventeen": "tensiven", "eighteen": "tenakt", "nineteen": "tenneen",
+    # tens
+    "twenty": "tvoten", "thirty": "triten", "forty": "firten",
+    "fifty": "fivten", "sixty": "seksten", "seventy": "siventen",
+    "eighty": "akten", "ninety": "neenten",
     # greetings / social
     "yes": "ja", "please": "gudvil", "thanks": "dank",
     "thank": "danken", "hello": "hej", "goodbye": "adjo",
@@ -418,8 +426,9 @@ NO_SPECIAL_EN: dict[str, str] = {
 
 class NordienDict:
     def __init__(self, path: Path):
-        self.en_no: dict[str, tuple[str, str]] = {}   # english  → (nordien, pos)
-        self.no_en: dict[str, tuple[str, str]] = {}   # nordien  → (english, pos)
+        self.en_no: dict[str, tuple[str, str]] = {}       # english  → (nordien, pos)  first entry wins
+        self.en_no_verb: dict[str, tuple[str, str]] = {}  # english  → verb entry (last verb entry wins)
+        self.no_en: dict[str, tuple[str, str]] = {}       # nordien  → (english, pos)
         self._load(path)
 
     def _load(self, path: Path):
@@ -443,10 +452,16 @@ class NordienDict:
                     continue
 
                 self.en_no.setdefault(en, (primary, pos))
+                if "v" in pos:
+                    self.en_no_verb[en] = (primary, pos)
                 self.no_en.setdefault(primary, (en, pos))
 
     def lookup_en(self, word: str) -> tuple[str, str] | None:
         return self.en_no.get(word.lower())
+
+    def lookup_en_verb(self, word: str) -> tuple[str, str] | None:
+        """Return the verb-specific entry, if any (bypasses noun-first collision)."""
+        return self.en_no_verb.get(word.lower())
 
     def lookup_no(self, word: str) -> tuple[str, str] | None:
         return self.no_en.get(word.lower())
@@ -562,7 +577,9 @@ def en_word(word: str, dic: NordienDict) -> str:
 
     # 1. Pronouns
     if lower in PRONOUNS_EN_NO:
-        return _cap(PRONOUNS_EN_NO[lower], word)
+        result = PRONOUNS_EN_NO[lower]
+        # "I" is capitalised by English convention, not because it's a proper noun.
+        return result if lower == "i" else _cap(result, word)
 
     # 2. Function words / contractions
     if lower in FUNCTION_EN_NO:
@@ -585,11 +602,17 @@ def en_word(word: str, dic: NordienDict) -> str:
             h = dic.lookup_en(candidate)
             if h and "v" in h[1]:
                 return _cap(_no_root(h[0]) + "ende", word)
+            hv = dic.lookup_en_verb(candidate)
+            if hv:
+                return _cap(_no_root(hv[0]) + "ende", word)
         # doubled consonant: running → run
         if len(base) >= 2 and base[-1] == base[-2]:
             h = dic.lookup_en(base[:-1])
             if h and "v" in h[1]:
                 return _cap(_no_root(h[0]) + "ende", word)
+            hv = dic.lookup_en_verb(base[:-1])
+            if hv:
+                return _cap(_no_root(hv[0]) + "ende", word)
 
     # 6. English -ed → Nordien -te
     if lower.endswith("ed"):
@@ -597,11 +620,17 @@ def en_word(word: str, dic: NordienDict) -> str:
             h = dic.lookup_en(candidate)
             if h and "v" in h[1]:
                 return _cap(_no_root(h[0]) + "te", word)
+            hv = dic.lookup_en_verb(candidate)
+            if hv:
+                return _cap(_no_root(hv[0]) + "te", word)
         # doubled consonant
         if len(lower) >= 4 and lower[-3] == lower[-4]:
             h = dic.lookup_en(lower[:-3])
             if h and "v" in h[1]:
                 return _cap(_no_root(h[0]) + "te", word)
+            hv = dic.lookup_en_verb(lower[:-3])
+            if hv:
+                return _cap(_no_root(hv[0]) + "te", word)
 
     # 7. English -s  → Nordien -e (3sg verb) or -ar (plural noun)
     if lower.endswith("s") and not lower.endswith("ss"):
@@ -612,6 +641,9 @@ def en_word(word: str, dic: NordienDict) -> str:
             if "v" in pos:
                 return _cap(_no_root(no) + "e", word)
             if "n" in pos:
+                hv = dic.lookup_en_verb(base)
+                if hv:
+                    return _cap(_no_root(hv[0]) + "e", word)
                 return _cap(no + "ar", word)
 
     # 7.5. English irregular plurals not caught above (men, mice, geese, knives…)
@@ -925,6 +957,15 @@ _EN_AUX = frozenset({
 _DO_TENSE_MAP: dict[str, str] = {"do": "pres", "does": "pres", "did": "past"}
 _WH_WORDS = frozenset({"what", "where", "when", "why", "how", "who", "whom"})
 
+# Words that follow "one" when it is used as an impersonal pronoun (→ "man"),
+# not as a numeral (→ "en").
+_ONE_PRONOUN_SIGNALS = frozenset({
+    "must", "should", "will", "would", "can", "could", "may", "might",
+    "shall", "need", "dare", "ought", "never", "always", "often",
+    "sometimes", "not", "knows", "thinks", "feels", "hopes", "tries",
+    "has", "is", "was", "does",
+})
+
 # ─── Contraction expansion ────────────────────────────────────────────────────
 
 _CONTRACTIONS: dict[str, str] = {
@@ -1035,16 +1076,79 @@ def translate(text: str, direction: str, dic: NordienDict) -> str:
         if q_result is not None:
             tokens, question_verb_idx, question_verb_tense = q_result
 
+    # Imperative: if first word is a base verb (no subject precedes it), use root form.
+    # Applies regardless of terminal punctuation — "Go!" and "Go." are both imperatives.
+    imp_verb_idx = -1
+    if direction == "en":
+        word_toks = [(i, t) for i, t in enumerate(tokens) if re.fullmatch(r"[A-Za-z'-]+", t)]
+        if word_toks:
+            fi, fw = word_toks[0]
+            fw_lower = fw.lower()
+            hit = dic.lookup_en(fw_lower)
+            if (hit and "v" in hit[1]) or fw_lower == "be":
+                imp_verb_idx = fi
+
+    perfect_participle_idx = -1  # next past-participle after have/has/had → use infinitive
+
+    def _next_word_tok(idx: int) -> str:
+        for j in range(idx + 1, len(tokens)):
+            if re.fullmatch(r"[A-Za-z'-]+", tokens[j]):
+                return tokens[j].lower()
+        return ""
+
     for _i, tok in enumerate(tokens):
         if re.fullmatch(r"[A-Za-z'-]+", tok):
+            lower_tok = tok.lower()
+
+            # Track perfect auxiliary: mark the next past participle for infinitive form
+            if direction == "en" and lower_tok in ("have", "has", "had"):
+                for j in range(_i + 1, len(tokens)):
+                    if re.fullmatch(r"[A-Za-z'-]+", tokens[j]):
+                        if tokens[j].lower() in IRREGULAR_EN:
+                            perfect_participle_idx = j
+                        break
+
             if _i == question_verb_idx:
                 raw = en_word(tok, dic)
                 if raw and not raw.startswith("[") and raw.lower().endswith("en"):
                     translated = _cap(_no_conjugate(raw.lower(), question_verb_tense), tok)
                 else:
                     translated = raw
+            elif _i == imp_verb_idx and direction == "en":
+                raw = en_word(tok, dic)
+                if raw and not raw.startswith("[") and raw.lower().endswith("en"):
+                    translated = _cap(_no_root(raw.lower()), tok)
+                else:
+                    translated = raw
+            elif _i == perfect_participle_idx and direction == "en":
+                inf, _ = IRREGULAR_EN[lower_tok]
+                translated = _cap(inf, tok)
+            elif direction == "en" and lower_tok == "one":
+                translated = "man" if _next_word_tok(_i) in _ONE_PRONOUN_SIGNALS else "en"
+            elif direction == "en" and lower_tok == "to":
+                nw = _next_word_tok(_i)
+                nw_hit = dic.lookup_en(nw) if nw else None
+                nw_fn = FUNCTION_EN_NO.get(nw, "")
+                if (nw_hit and "v" in nw_hit[1]) or nw == "be" or (nw_fn and nw_fn.endswith("en")):
+                    translated = ""  # infinitive marker — not needed in Nordien
+                else:
+                    translated = en_word(tok, dic)
+            elif direction == "en" and lower_tok == "too":
+                nw = _next_word_tok(_i)
+                nw_hit = dic.lookup_en(nw) if nw else None
+                # "too" before adj/adv = excessive (tu); elsewhere = also (og)
+                _too_excessive_fn = frozenset({
+                    "many", "much", "few", "little", "often", "soon", "far",
+                    "long", "fast", "slow", "early", "late", "well", "hard",
+                })
+                if (nw_hit and ("adj" in nw_hit[1] or "adv" in nw_hit[1])) \
+                        or nw in _too_excessive_fn:
+                    translated = "tu"
+                else:
+                    translated = "og"
             else:
                 translated = en_word(tok, dic) if direction == "en" else no_word(tok, dic)
+
             # Defer neet when it comes from "not" after a dropped auxiliary,
             # or directly from a do-contraction (don't / doesn't / didn't).
             if direction == "en" and translated == "neet" and (
