@@ -129,19 +129,6 @@ FUNCTION_EN_NO: dict[str, str] = {
     "thank": "danken", "hello": "hej", "goodbye": "adjo",
     "well": "gud", "okay": "alreet", "sorry": "bedure",
     "maybe": "velekt", "perhaps": "velekt",
-    # contractions (expand before lookup in practice)
-    "don't": "neet", "doesn't": "neet", "didn't": "neet",
-    "isn't": "ere neet", "aren't": "ere neet",
-    "wasn't": "erte neet", "weren't": "erte neet",
-    "won't": "skal neet", "wouldn't": "skul neet",
-    "can't": "kane neet", "couldn't": "kante neet",
-    "shouldn't": "skule neet", "mustn't": "muste neet",
-    "haven't": "have neet", "hasn't": "have neet", "hadn't": "havte neet",
-    "i'm": "eg ere", "i've": "eg have", "i'll": "eg skal", "i'd": "eg skul",
-    "you're": "du ere", "he's": "han ere", "she's": "zi ere",
-    "it's": "het ere", "we're": "vi ere", "they're": "dee ere",
-    "that's": "da ere", "there's": "dar ere", "here's": "har ere",
-    "i'm": "eg ere",
 }
 
 # ─── English irregular verb → (Nordien infinitive, tense) ───────────────────
@@ -938,6 +925,50 @@ _EN_AUX = frozenset({
 _DO_TENSE_MAP: dict[str, str] = {"do": "pres", "does": "pres", "did": "past"}
 _WH_WORDS = frozenset({"what", "where", "when", "why", "how", "who", "whom"})
 
+# ─── Contraction expansion ────────────────────────────────────────────────────
+
+_CONTRACTIONS: dict[str, str] = {
+    # negative contractions
+    "won't": "will not",    "shan't": "shall not",
+    "can't": "can not",     "don't": "do not",
+    "doesn't": "does not",  "didn't": "did not",
+    "isn't": "is not",      "aren't": "are not",
+    "wasn't": "was not",    "weren't": "were not",
+    "wouldn't": "would not","couldn't": "could not",
+    "shouldn't": "should not", "mustn't": "must not",
+    "mightn't": "might not","needn't": "need not",
+    "haven't": "have not",  "hasn't": "has not",  "hadn't": "had not",
+    # subject + auxiliary
+    "i'm": "i am",     "i've": "i have",  "i'll": "i will",  "i'd": "i would",
+    "you're": "you are","you've": "you have","you'll": "you will","you'd": "you would",
+    "he's": "he is",   "he'll": "he will", "he'd": "he would",
+    "she's": "she is", "she'll": "she will","she'd": "she would",
+    "it's": "it is",   "it'll": "it will", "it'd": "it would",
+    "we're": "we are", "we've": "we have", "we'll": "we will", "we'd": "we would",
+    "they're": "they are","they've": "they have","they'll": "they will","they'd": "they would",
+    "that's": "that is","that'll": "that will","that'd": "that would",
+    "there's": "there is","there'll": "there will",
+    "here's": "here is",
+    "what's": "what is","what'll": "what will",
+    "who's": "who is",  "who'll": "who will",
+    "where's": "where is","how's": "how is",
+    "let's": "let us",
+}
+
+_CONTRACTION_RE = re.compile(
+    r"\b(?:" + "|".join(re.escape(k) for k in sorted(_CONTRACTIONS, key=len, reverse=True)) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _expand_contractions(text: str) -> str:
+    """Expand English contractions to full words before translation."""
+    def _repl(m: re.Match) -> str:
+        word = m.group(0)
+        expanded = _CONTRACTIONS[word.lower()]
+        return expanded[0].upper() + expanded[1:] if word[0].isupper() else expanded
+    return _CONTRACTION_RE.sub(_repl, text)
+
 
 def _restructure_do_question(tokens: list[str]) -> tuple[list[str], int, str] | None:
     """
@@ -956,6 +987,8 @@ def _restructure_do_question(tokens: list[str]) -> tuple[list[str], int, str] | 
     if tense is None:
         return None
     subj_pos = word_idxs[wh_offset + 1]
+    if tokens[subj_pos].lower() == "not":  # negative question: "do not you..." — skip
+        return None
     verb_pos = word_idxs[wh_offset + 2]
     verb_tok = tokens[verb_pos]
     new_tokens: list[str] = []
@@ -987,8 +1020,10 @@ def translate(text: str, direction: str, dic: NordienDict) -> str:
     verb is not an auxiliary (past-tense restructuring is a known limitation).
     """
     _NEET = "\x00NEET\x00"
-    text = text.replace('‘', "'").replace('’', "'")  # normalise smart quotes
-    tokens = re.findall(r"[A-Za-z'-]+|[^A-Za-z'''-]", text)
+    text = text.replace('\u2018', "'").replace('\u2019', "'")  # normalise smart quotes
+    if direction == "en":
+        text = _expand_contractions(text)
+    tokens = re.findall(r"[A-Za-z\x27-]+|[^A-Za-z\x27\x27\x27-]", text)
     out: list[str] = []
     prev_dropped = False   # last word token translated to "" (dropped auxiliary)
 
