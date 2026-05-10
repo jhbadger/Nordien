@@ -935,6 +935,45 @@ _EN_AUX = frozenset({
     "have", "has", "had", "do", "does", "did",
 })
 
+_DO_TENSE_MAP: dict[str, str] = {"do": "pres", "does": "pres", "did": "past"}
+_WH_WORDS = frozenset({"what", "where", "when", "why", "how", "who", "whom"})
+
+
+def _restructure_do_question(tokens: list[str]) -> tuple[list[str], int, str] | None:
+    """
+    Detect do/does/did questions and restructure tokens for Nordien V-S order.
+    'do you speak nordien?' → tokens for 'speak you nordien?' with verb index.
+    Returns (new_tokens, verb_idx_in_new_tokens, tense) or None.
+    """
+    word_idxs = [i for i, t in enumerate(tokens) if re.fullmatch(r"[A-Za-z'-]+", t)]
+    if not word_idxs:
+        return None
+    wh_offset = 1 if tokens[word_idxs[0]].lower() in _WH_WORDS else 0
+    if len(word_idxs) < wh_offset + 3:
+        return None
+    do_pos = word_idxs[wh_offset]
+    tense = _DO_TENSE_MAP.get(tokens[do_pos].lower())
+    if tense is None:
+        return None
+    subj_pos = word_idxs[wh_offset + 1]
+    verb_pos = word_idxs[wh_offset + 2]
+    verb_tok = tokens[verb_pos]
+    new_tokens: list[str] = []
+    verb_new_idx = -1
+    for i, t in enumerate(tokens):
+        if i == do_pos:
+            continue
+        elif i == subj_pos:
+            verb_new_idx = len(new_tokens)
+            new_tokens.append(verb_tok)
+            new_tokens.append(" ")
+            new_tokens.append(t)
+        elif i == verb_pos:
+            continue
+        else:
+            new_tokens.append(t)
+    return new_tokens, verb_new_idx, tense
+
 # ─── Sentence translation ─────────────────────────────────────────────────────
 
 def translate(text: str, direction: str, dic: NordienDict) -> str:
@@ -953,9 +992,24 @@ def translate(text: str, direction: str, dic: NordienDict) -> str:
     out: list[str] = []
     prev_dropped = False   # last word token translated to "" (dropped auxiliary)
 
-    for tok in tokens:
+    # Question inversion: restructure do/does/did questions for Nordien V-S order
+    question_verb_idx = -1
+    question_verb_tense = ""
+    if direction == "en" and text.rstrip().endswith("?"):
+        q_result = _restructure_do_question(tokens)
+        if q_result is not None:
+            tokens, question_verb_idx, question_verb_tense = q_result
+
+    for _i, tok in enumerate(tokens):
         if re.fullmatch(r"[A-Za-z'-]+", tok):
-            translated = en_word(tok, dic) if direction == "en" else no_word(tok, dic)
+            if _i == question_verb_idx:
+                raw = en_word(tok, dic)
+                if raw and not raw.startswith("[") and raw.lower().endswith("en"):
+                    translated = _cap(_no_conjugate(raw.lower(), question_verb_tense), tok)
+                else:
+                    translated = raw
+            else:
+                translated = en_word(tok, dic) if direction == "en" else no_word(tok, dic)
             # Defer neet when it comes from "not" after a dropped auxiliary,
             # or directly from a do-contraction (don't / doesn't / didn't).
             if direction == "en" and translated == "neet" and (
@@ -987,6 +1041,7 @@ def translate(text: str, direction: str, dic: NordienDict) -> str:
 
     result = "".join(out)
     result = re.sub(r" {2,}", " ", result).strip()
+    result = re.sub(r" +([?!.,;:])", r"\1", result)  # no space before punctuation
 
     if direction == "no":
         # "verb not" → "do not verb" when verb is not an auxiliary.
