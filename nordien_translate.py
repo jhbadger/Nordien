@@ -1241,6 +1241,10 @@ def main():
         return
 
     # ── Interactive mode ─────────────────────────────────────────────────────
+    try:
+        import readline  # noqa: F401 — enables arrow-key editing and history in input()
+    except ImportError:
+        pass
     print("Nordien ↔ English Translator")
     print(f"Mode: {label(direction)}  |  type 'en'/'no' to switch, 'q' to quit\n")
     while True:
